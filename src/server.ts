@@ -12,33 +12,33 @@ import { look, flip, map, watch } from './commands.js';
 
 /**
  * Start a game server using the given arguments.
- * 
+ *
  * PS4 instructions: you are advised *not* to modify this file.
  *
  * Command-line usage:
  *     npm start PORT FILENAME
  * where:
- * 
+ *
  *   - PORT is an integer that specifies the server's listening port number,
  *     0 specifies that a random unused port will be automatically chosen.
  *   - FILENAME is the path to a valid board file, which will be loaded as
  *     the starting game board.
- * 
+ *
  * For example, to start a web server on a randomly-chosen port using the
  * board in `boards/hearts.txt`:
  *     npm start 0 boards/hearts.txt
- * 
+ *
  * @throws Error if an error occurs parsing a file or starting a server
  */
 async function main(): Promise<void> {
-    const [portString, filename] 
+    const [portString, filename]
         = process.argv.slice(2); // skip the first two arguments 
                                  // (argv[0] is node executable file, argv[1] is this script)
     if (portString === undefined) { throw new Error('missing PORT'); }
     const port = parseInt(portString);
     if (isNaN(port) || port < 0) { throw new Error('invalid PORT'); }
     if (filename === undefined) { throw new Error('missing FILENAME'); }
-    
+
     const board = await Board.parseFromFile(filename);
     const server = new WebServer(board, port);
     await server.start();
@@ -55,12 +55,12 @@ class WebServer {
 
     /**
      * Make a new web game server using board that listens for connections on port.
-     * 
+     *
      * @param board shared game board
      * @param requestedPort server port number
      */
     public constructor(
-        private readonly board: Board, 
+        private readonly board: Board,
         private readonly requestedPort: number
     ) {
         this.app = express();
@@ -82,9 +82,9 @@ class WebServer {
 
             const boardState = await look(this.board, playerId);
             response
-            .status(StatusCodes.OK) // 200
-            .type('text')
-            .send(boardState);
+                .status(StatusCodes.OK) // 200
+                .type('text')
+                .send(boardState);
         });
 
         /*
@@ -107,14 +107,14 @@ class WebServer {
             try {
                 const boardState = await flip(this.board, playerId, row, column);
                 response
-                .status(StatusCodes.OK) // 200
-                .type('text')
-                .send(boardState);
+                    .status(StatusCodes.OK) // 200
+                    .type('text')
+                    .send(boardState);
             } catch (err) {
                 response
-                .status(StatusCodes.CONFLICT) // 409
-                .type('text')
-                .send(`cannot flip this card: ${err}`);
+                    .status(StatusCodes.CONFLICT) // 409
+                    .type('text')
+                    .send(`cannot flip this card: ${err}`);
             }
         });
 
@@ -136,9 +136,9 @@ class WebServer {
 
             const boardState = await map(this.board, playerId, async (card: string) => card === fromCard ? toCard : card);
             response
-            .status(StatusCodes.OK) // 200
-            .type('text')
-            .send(boardState);
+                .status(StatusCodes.OK) // 200
+                .type('text')
+                .send(boardState);
         });
 
         /*
@@ -157,9 +157,9 @@ class WebServer {
 
             const boardState = await watch(this.board, playerId);
             response
-            .status(StatusCodes.OK) // 200
-            .type('text')
-            .send(boardState);
+                .status(StatusCodes.OK) // 200
+                .type('text')
+                .send(boardState);
         });
 
         /*
@@ -172,7 +172,7 @@ class WebServer {
 
     /**
      * Start this server.
-     * 
+     *
      * @returns (a promise that) resolves when the server is listening
      */
     public start(): Promise<void> {
@@ -202,7 +202,7 @@ class WebServer {
     /**
      * Stop this server. Once stopped, this server cannot be restarted.
      */
-     public stop(): void {
+    public stop(): void {
         this.server?.close();
         console.log('server stopped');
     }
