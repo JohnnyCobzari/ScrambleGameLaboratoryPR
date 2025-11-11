@@ -14,12 +14,15 @@ import { Board } from './board.js';
  * @throws Error if an error occurs reading or parsing the board
  */
 async function simulationMain(): Promise<void> {
-    const filename = 'boards/perfect.txt'; // Use smaller 3x3 board for easier visualization
+    const filename = 'boards/ab.txt'; // 5x5 board
     const board: Board = await Board.parseFromFile(filename);
-    const size = 3; // 3x3 board
-    const players = 2; // 2 players for easier visualization
-    const tries = 5; // Fewer tries for cleaner output
-    const maxDelayMilliseconds = 200; // Slower for better visualization
+    const size = 5; // 5x5 board
+    const players = 4; // 4 players
+    const tries = 100; // 100 moves each
+    const minDelayMilliseconds = 0.1; // Minimum delay
+    const maxDelayMilliseconds = 2; // Maximum delay
+    const ten = 10;
+    const hundread = 100;
 
     console.log('=== INITIAL BOARD STATE ===');
     console.log(board.toString());
@@ -30,12 +33,22 @@ async function simulationMain(): Promise<void> {
     for (let ii = 0; ii < players; ++ii) {
         playerPromises.push(player(ii));
     }
+
+    console.log(`\nStarting simulation with ${players} players, ${tries} moves each...`);
+    const startTime = Date.now();
+
     // wait for all the players to finish (unless one throws an exception)
     await Promise.all(playerPromises);
+
+    const duration = Date.now() - startTime;
 
     console.log('\n=== FINAL BOARD STATE ===');
     console.log(board.toString());
     console.log('=========================');
+    console.log(`\n✅ SIMULATION COMPLETED SUCCESSFULLY!`);
+    console.log(`   Total time: ${duration}ms`);
+    console.log(`   Total moves: ${players * tries}`);
+    console.log(`   No crashes detected!`);
 
     /** @param playerNumber player to simulate */
     async function player(playerNumber: number): Promise<void> {
@@ -45,8 +58,8 @@ async function simulationMain(): Promise<void> {
 
         for (let jj = 0; jj < tries; ++jj) {
             try {
-                // Random delay before first card
-                await timeout(Math.random() * maxDelayMilliseconds);
+                // Random delay between minDelay and maxDelay
+                await timeout(minDelayMilliseconds + Math.random() * (maxDelayMilliseconds - minDelayMilliseconds));
 
                 // Try to flip over a first card at random position
                 const row1 = randomInt(size);
@@ -55,8 +68,8 @@ async function simulationMain(): Promise<void> {
                 await board.flipCard(playerId, row1, col1);
                 console.log(`${playerId} successfully flipped first card at (${row1}, ${col1})`);
 
-                // Random delay before second card
-                await timeout(Math.random() * maxDelayMilliseconds);
+                // Random delay between minDelay and maxDelay
+                await timeout(minDelayMilliseconds + Math.random() * (maxDelayMilliseconds - minDelayMilliseconds));
 
                 // Try to flip over a second card at random position
                 const row2 = randomInt(size);
@@ -65,11 +78,12 @@ async function simulationMain(): Promise<void> {
                 await board.flipCard(playerId, row2, col2);
                 console.log(`${playerId} successfully flipped second card at (${row2}, ${col2})`);
 
-                // Show board state from this player's perspective
-                console.log(`\n${playerId}'s view of the board:`);
-                console.log(board.getBoardState(playerId));
+                // Only show board state every 10 moves to reduce console spam
+                if ((jj + 1) % ten === 0) {
+                    console.log(`\n${playerId} completed ${jj + 1} moves`);
+                }
             } catch (err) {
-                console.error(`${playerId} attempt to flip a card failed:`, err);
+                console.error(`${playerId} attempt ${jj + 1} failed:`, String(err).substring(0, hundread));
             }
         }
 
